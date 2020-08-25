@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat SocketIO</title>
+
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
+
+  <link rel='stylesheet' href='style.css' />
+</head>
+<body>
+  <form id="chat">
+    <input type="text" name='username' placeholder='Digite seu usuário'>
+    <div class="messages"></div>
+    <input type="text" name='message' placeholder='Digite sua mensagem'>
+
+    <button type="submit">Enviar</button>
+  </form>
+
+  <script type='text/javascript'>
+    // Url de onde o socket irá se conectar com o backend
+    const socket = io('http://localhost:3000')
+
+    function renderMessage(message) {
+      $('.messages').append(`<div class='message'><strong>${message.author}</strong>: ${message.message}</div>`)
+    }
+
+    socket.on('previousMessages', function(messages) {
+      for(message of messages) {
+        renderMessage(message)
+      }
+    })
+
+    socket.on('receiveMessage', function(message) {
+      renderMessage(message)
+    })
+
+    // Roda uma função quando o formulario é submitado
+    $('#chat').submit(function(event) {
+      event.preventDefault()
+
+      // Pega os valores nos inputs
+      let author = $('input[name=username]').val()
+      let message = $('input[name=message]').val()
+
+      // Confere se o valor dos input são maiores que 0
+      if (author.length && message.length) {
+        let messageObject = {
+          author,
+          message
+        }
+
+        renderMessage(messageObject)
+
+        // Envia o objeto acima para o backend
+        socket.emit('sendMessage', messageObject)
+      }
+    })
+  </script>
+</body>
+</html>
